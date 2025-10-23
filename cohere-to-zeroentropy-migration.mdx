@@ -1,16 +1,22 @@
 ---
 title: Migration Guide — Cohere to ZeroEntropy
-description: Step-by-step procedure to migrate RAG pipelines, rerankers, and embeddings from Cohere APIs to ZeroEntropy.
+description: Step-by-step migration procedure from Cohere to ZeroEntropy with advantages of switching.
 ---
 
 # Migrating from Cohere to ZeroEntropy
 
-This guide walks you through migrating your existing AI retrieval or reranking systems from **Cohere** to **ZeroEntropy**. The process covers API replacement, environment setup, and code conversion with minimal disruption.
+This guide provides a detailed procedure to migrate your AI applications from **Cohere** to **ZeroEntropy** along with reasons why ZeroEntropy is an advantageous choice.
+## Why Migrate to ZeroEntropy?
 
-## 1. Overview
+- **Faster Response Times:** ZeroEntropy offers up to 12% improved latency in reranking tasks compared to Cohere, making your applications more responsive.  
+- **Typed SDK & Strong Typing:** ZeroEntropy’s Python SDK uses typed Pydantic models ensuring safer and clearer code with better autocomplete and validation.  
+- **Optimized Models:** ZeroEntropy models like `zerank-1` and `zenbed-1` are specifically tuned for fast and accurate reranking and embeddings across domains (legal, healthcare, etc.).  
+- **Better Scalability:** Async support allows high concurrency and throughput for large-scale applications.  
+- **Secure API Key Management:** Environment variable configuration reduces risk of accidentally exposing keys in code.  
 
-Cohere and ZeroEntropy share conceptual similarities for rerankers and embeddings.  
-However, ZeroEntropy offers faster throughput, improved latency (up to 12% faster in benchmarks), and typed Python SDKs for safer integration.
+---
+
+## Migration Procedure
 
 ## 2. Prerequisites
 
