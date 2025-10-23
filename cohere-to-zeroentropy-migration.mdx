@@ -5,18 +5,6 @@ description: "Step-by-step migration procedure from Cohere to ZeroEntropy with a
 
 # Migrating from Cohere to ZeroEntropy
 
-<<<<<<< HEAD
-This guide walks you through migrating your existing AI retrieval or reranking systems from **Cohere** to **ZeroEntropy**. The process covers API replacement, environment setup, and code conversion with minimal disruption.
-
-## Overview
-Although, **Cohere** and **ZeroEntropy** share conceptual similarities for rerankers and embeddings. **ZeroEntropy** offers faster throughput, improved latency (up to 12% faster in benchmarks), and typed Python SDKs for safer integration. Here are some of the key highlights:
-
-- **Faster Response Times:** ZeroEntropy offers up to 12% improved latency in reranking tasks compared to Cohere, making your applications more responsive.  
-- **Typed SDK & Strong Typing:** ZeroEntropy’s Python SDK uses typed Pydantic models ensuring safer and clearer code with better autocomplete and validation.  
-- **Optimized Models:** ZeroEntropy models like `zerank-1` and `zenbed-1` are specifically tuned for fast and accurate reranking and embeddings across domains (legal, healthcare, etc.).  
-- **Better Scalability:** Async support allows high concurrency and throughput for large-scale applications.  
-- **Secure API Key Management:** Environment variable configuration reduces risk of accidentally exposing keys in code.  
-=======
 This guide provides a detailed procedure for migrating your AI applications from **Cohere** to **ZeroEntropy** and explains why **ZeroEntropy** is advantageous.
 
 ## Why Migrate to ZeroEntropy?
@@ -25,16 +13,9 @@ This guide provides a detailed procedure for migrating your AI applications from
 - **Typed SDK & Strong Typing:** ZeroEntropy’s Python SDK uses typed Pydantic models, ensuring safer and clearer code with better autocomplete and validation.
 - **Optimized Models:** ZeroEntropy models like `zerank-1` and `zenbed-1` are specifically tuned for fast and accurate reranking and embeddings across domains (legal, healthcare, etc.).
 - **Better Scalability:** Async support allows high concurrency and throughput for large-scale applications.
-- **Secure API Key Management:** Environment variable configuration reduces risk of accidentally exposing keys in code.
+- **Secure API Key Management:** Environment variable configuration reduces the risk of accidentally exposing keys in code.
 
->>>>>>> 8684db5c6d23fd09e9bd7395057b37f114a12aeb
 ---
-
-## 2. Prerequisites
-
-- Python 3.8 or later  
-- Existing Cohere integration (typically using `cohere` package for rerank/generate APIs)  
-- Access to [ZeroEntropy Dashboard](https://dashboard.zeroentropy.dev) to create your **API Key**
 
 ## Migration Procedure
 
