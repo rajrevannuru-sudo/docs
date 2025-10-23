@@ -1,0 +1,612 @@
+---
+title: PagerTree
+description: Connect PagerTree alerts with Rootly's incident management platform for automated response workflows
+---
+
+# PagerTree Integration
+
+Connect PagerTree with Rootly to automatically convert alerts into actionable incidents with intelligent routing, deduplication, and workflow automation.
+
+## Overview
+
+The PagerTree integration enables:
+
+- **Automatic Alert Ingestion**: Receive PagerTree notifications directly in Rootly
+- **Intelligent Deduplication**: Prevent duplicate alerts using unique identifiers
+- **Auto-Resolution**: Automatically resolve Rootly alerts when PagerTree alerts are resolved
+- **Workflow Automation**: Trigger incident creation, Slack notifications, and team assembly
+- **Custom Field Mapping**: Map PagerTree alert fields to Rootly's alert structure
+
+## Prerequisites
+
+<CardGroup cols={2}>
+  <Card title="Rootly Requirements" icon="shield-check">
+    - [Admin access to Rootly](https://docs.rootly.com/managing-users/user-permissions#admin)
+    - Generic Webhook Alert Source capability
+  </Card>
+  <Card title="PagerTree Requirements" icon="tree">
+    - [Admin access to PagerTree](https://pagertree.com/docs/getting-started/account-admins)
+    - Ability to configure Outgoing Webhooks
+  </Card>
+</CardGroup>
+
+<Warning>
+  **Authentication Limitation**: PagerTree's Outgoing Webhook only supports Basic Authentication, while Rootly expects Bearer Token authentication. We'll use URL parameter authentication as a workaround.
+</Warning>
+
+## Configuration
+
+### Step 1: Create Alert Source in Rootly
+
+<Steps>
+  <Step title="Navigate to Alert Sources">
+    Go to **Alerts** → **Alert Sources** in your Rootly dashboard
+  </Step>
+  
+  <Step title="Add Generic Webhook">
+    1. Click **Add Alert Source**
+    2. Select **Generic Webhook** from the integration list
+    
+    ![Generic Webhook Selection](https://i.ibb.co/4g8P6PVM/Screenshot-2025-10-14-at-10-53-03-AM.png)
+  </Step>
+  
+  <Step title="Configure Alert Source">
+    1. **Name**: Enter a descriptive name (e.g., `PagerTree-Production-Alerts`)
+    2. **Owning Team**: Select the default team for alert routing
+    3. Click **Add Source**
+    
+    ![Alert Source Configuration](https://i.ibb.co/Ps3BzLn7/Screenshot-2025-10-14-at-10-54-07-AM.png)
+  </Step>
+  
+  <Step title="Copy Webhook Details">
+    1. Copy the **Webhook URL via parameter** (includes authentication token)
+    2. Keep this page open for field mapping configuration
+    
+    ![Webhook URL Copy](https://i.ibb.co/BJGfQsn/Screenshot-2025-10-14-at-10-55-42-AM.png)
+    
+    <Note>
+      Using URL parameter authentication bypasses the Bearer Token requirement
+    </Note>
+  </Step>
+</Steps>
+
+### Step 2: Configure PagerTree Webhook
+
+<Steps>
+  <Step title="Access PagerTree Integrations">
+    1. Log in to your PagerTree account
+    2. Navigate to **Integrations** from the main menu
+    3. Look for **Outgoing Webhooks** in the integrations list
+    4. Click **Create Integration** or **Add Outgoing Webhook**
+  </Step>
+  
+  <Step title="Create New Outgoing Webhook">
+    Configure the webhook with these settings:
+    
+    **Basic Configuration:**
+    - **Name**: `Rootly Alert Integration` (or another descriptive name)
+    - **Enabled**: Toggle ON
+    
+    **Webhook Settings:**
+    - **URL**: Paste the Rootly webhook URL from Step 1 (the one with the parameter)
+    - **Method**: `POST`
+    - **Content-Type**: `application/json`
+
+    ![](https://pagertree.com/docs/assets/images/image%20(6)%20(1)%20(1)-20fc9ebd0b6307af5aa61b424ec4e2da.png)
+    
+    <Warning>
+      Ensure you're using the "URL via parameter" version from Rootly, not the Bearer Token URL
+    </Warning>
+  </Step>
+  
+  <Step title="Webhook Events">
+    PagerTree automatically sends webhooks for these 8 events:
+    
+    **Supported Events:**
+    - ✅ **alert.created** - Fired when the alert is created in the database
+    - ✅ **alert.open** - Fired when alert transitions from queued to open
+    - ✅ **alert.acknowledged** - Fired when alert is acknowledged by a user
+    - ✅ **alert.rejected** - Fired when alert is rejected by a user
+    - ✅ **alert.timeout** - Fired when alert times out and moves to next escalation
+    - ✅ **alert.resolved** - Fired when the alert is resolved
+    - ✅ **alert.dropped** - Fired when the alert is dropped
+    - ✅ **alert.handoff** - Fired when alert is handed off to another user
+    
+    <Info>
+      All events are sent automatically. Use Outgoing Rules to filter specific events if needed.
+    </Info>
+  </Step>
+  
+  <Step title="Configure JSON Template">
+    In the **JSON Template** section, configure the webhook payload format using Handlebars syntax:
+    
+    ```json
+    {
+      "event_type": "{{event.type}}",
+      "title": "{{alert.title}}",
+      "description": "{{alert.description}}",
+      "pagertree_alert_url": "https://app.pagertree.com/#/alert/{{alert.id}}",
+      "urgency": "{{alert.urgency}}",
+      "id": "{{alert.id}}",
+      "tinyId": {{alert.tinyId}},
+      "status": "{{alert.status}}",
+      "type": "{{alert.type}}",
+      "created_at": "{{alert.createdAt}}",
+      "updated_at": "{{alert.updatedAt}}",
+      "source_id": "{{alert.source_id}}",
+      "team_id": "{{alert.d_team_id}}",
+      "team_name": "{{alert.d_team.name}}",
+      "user_id": "{{alert.d_user_id}}",
+      "user_name": "{{alert.d_user.name}}",
+      "acknowledged": {{alert.acknowledged}},
+      "resolved": {{alert.resolved}},
+      "tags": {{{JSONstringify alert.tags}}},
+      "meta": {{{JSONstringify alert.meta}}}
+    }
+    ```
+    
+    **Available Alert Properties ([Source](https://pagertree.com/docs/integration-guides/outgoing-webhook)):**
+    | Property | Description | Example |
+    |----------|-------------|----------|
+    | `{{alert.id}}` | Unique alert ID | "alt_HJ3eGW-6M" |
+    | `{{alert.tinyId}}` | Numeric ID | 1234 |
+    | `{{alert.title}}` | Alert title | "CPU usage over 95%" |
+    | `{{alert.description}}` | Alert description | "PROD APP 1 CPU load over 95%" |
+    | `{{alert.urgency}}` | Urgency level | "critical", "high", "medium", "low" |
+    | `{{alert.status}}` | Current status | "open", "acknowledged", "resolved" |
+    | `{{alert.type}}` | Alert type | "alert" |
+    | `{{alert.d_team_id}}` | Team ID | "tem_ByxQ3ukgTM" |
+    | `{{alert.d_user_id}}` | User ID | "usr_r1mnuJg6z" |
+    | `{{event.type}}` | Event that triggered | "alert.resolved" |
+  </Step>
+  
+  <Step title="Enable Linked Data (Recommended)">
+    Toggle ON **Linked Data** to embed full referenced objects in the webhook payload:
+    
+    **Linked Data provides:**
+    - `d_team` - Full team object (referenced by `d_team_id`)
+    - `d_user` - Full user object (referenced by `d_user_id`)
+    - `source` - Full source integration object (referenced by `source_id`)
+    - `s_log` - Full log object (referenced by `s_log_id`)
+    
+    <Tip>
+      With Linked Data enabled, you can access nested properties like `{{alert.d_user.name}}` or `{{alert.d_team.email}}`
+    </Tip>
+  </Step>
+  
+  <Step title="Webhook Delivery (Automatic)">
+    PagerTree automatically handles webhook delivery with:
+    
+    - **Retries**: Up to 14 attempts with exponential backoff
+    - **Success Codes**: Any 2xx HTTP response is considered successful
+    - **Failure Handling**: Non-2xx responses trigger automatic retries
+    
+    <Info>
+      No configuration needed - PagerTree's robust retry mechanism ensures reliable delivery
+    </Info>
+  </Step>
+  
+  <Step title="Test Configuration">
+    Before saving, test the webhook:
+    
+    1. Click **Test Webhook** or **Send Test**
+    2. PagerTree will send a sample payload to Rootly
+    3. You should see a success response (HTTP 200 or 201)
+    4. If you see an error:
+       - Verify the URL is correct and includes the secret parameter
+       - Check that the JSON template is valid
+       - Ensure your Rootly alert source is active
+  </Step>
+  
+  <Step title="Save and Activate">
+    1. Click **Save** or **Create Integration**
+    2. Ensure the webhook shows as **Active** or **Enabled**
+    3. Note down the webhook ID for troubleshooting
+  </Step>
+</Steps>
+
+<Accordion title="Advanced: Outgoing Rules" icon="cog">
+  ### Filter Events with Rules
+  
+  Use YAML-based Outgoing Rules in PagerTree to control which events trigger webhooks:
+  
+  **Suppress Non-Critical Alerts:**
+  ```yaml
+  rules:
+    - match:
+        alert.urgency:
+          $ne: critical
+      actions:
+       - type: ignore
+  ```
+  
+  **Suppress by Source Integration:**
+  ```yaml
+  rules:
+    - match:
+        alert.source_id: "int_xxxxxxx"
+      actions:
+       - type: ignore
+  ```
+  
+  **Dynamic Webhook URL Routing:**
+  ```yaml
+  rules:
+    - match:
+        alert.d_team_id: "tem_backend"
+      actions:
+      - type: setval
+        map:
+          webhook_url: "https://backend-webhook.example.com"
+    
+    - match:
+        alert.d_team_id: "tem_frontend" 
+      actions:
+      - type: setval
+        map:
+          webhook_url: "https://frontend-webhook.example.com"
+  ```
+  
+  ### Available Rule Operators
+  
+  PagerTree supports all router operators for matching conditions:
+  - `$eq` - Equals
+  - `$ne` - Not equals
+  - `$in` - In array
+  - `$nin` - Not in array
+  - `$exists` - Field exists
+  - `$regex` - Regular expression match
+  
+  ### Template Helpers
+  
+  PagerTree supports all [handlebars-helpers](https://github.com/helpers/handlebars-helpers):
+  
+  ```handlebars
+  {{replace event.type "alert." ""}}  // Removes "alert." prefix
+  {{{JSONstringify alert}}}  // Outputs entire alert as JSON
+  {{#if (eq alert.urgency "critical")}}Critical!{{/if}}
+  ```
+</Accordion>
+
+### Step 3: Test and Map Fields
+
+<Steps>
+  <Step title="Send Test Alert">
+    1. In PagerTree, navigate to **Alerts** → **New Alert**
+    2. Create a test alert with:
+       - **Title**: "Test Rootly Integration"
+       - **Destination**: Your username or team
+    3. Click **Create**
+    
+    ![Create Test Alert](https://i.ibb.co/G4xn78d9/Screenshot-2025-10-14-at-2-21-59-PM.png)
+  </Step>
+  
+  <Step title="Verify Alert Receipt">
+    Return to Rootly's configuration page to see the received payload:
+    
+    ![Alert Received](https://i.ibb.co/zzKN3XX/Screenshot-2025-10-14-at-2-20-30-PM.png)
+  </Step>
+  
+  <Step title="Configure Field Mapping">
+    Map PagerTree fields to Rootly using JSONPath expressions:
+    
+    <Tabs>
+      <Tab title="Required Fields">
+        | Rootly Field | JSONPath | Description |
+        |-------------|----------|-------------|
+        | Alert Title | `$.title` | Main alert identifier |
+        | Alert Description | `$.description` | Detailed alert information |
+        | Link to Alert | `$.pagertree_alert_url` | Direct link to PagerTree alert |
+        | Unique Identifier | `$.id` | Prevents duplicates & enables auto-resolution |
+      </Tab>
+      
+      <Tab title="Optional Fields">
+        | Rootly Field | JSONPath | Description |
+        |-------------|----------|-------------|
+        | Source | `$.source` | Alert origin system |
+        | Team | `$.team` | Assigned team name |
+        | Created At | `$.created_at` | Alert timestamp |
+        | Assigned Users | `$.assigned_to` | List of assigned responders |
+      </Tab>
+    </Tabs>
+    
+    ![Field Mapping Configuration](https://i.ibb.co/1fcx7Rg1/Screenshot-2025-10-14-at-2-34-40-PM.png)
+  </Step>
+</Steps>
+
+### Step 4: Configure Alert Behavior
+
+<AccordionGroup>
+  <Accordion title="Alert Urgency" icon="exclamation-triangle">
+    Set how PagerTree urgency maps to Rootly severity:
+    
+    1. **Default Urgency**: Select your preferred default (e.g., "High")
+    2. **Dynamic Mapping** (Optional):
+       - Click **Add Condition**
+       - Configure rules like:
+         - If `$.urgency` equals `"low"` → Set to **Low**
+         - If `$.urgency` equals `"medium"` → Set to **Medium**
+         - If `$.urgency` equals `"high"` → Set to **High**
+         - If `$.urgency` equals `"critical"` → Set to **Critical**
+  </Accordion>
+  
+  <Accordion title="Alert Deduplication" icon="copy">
+    Enable smart alert grouping:
+    
+    1. **Toggle ON**: "Combine duplicate alerts into one alert"
+    2. **Unique Identifier**: Confirm `$.id` is set
+    3. This prevents multiple Rootly alerts for the same PagerTree incident
+  </Accordion>
+  
+  <Accordion title="Auto-Resolution" icon="check-circle">
+    Configure automatic alert resolution:
+    
+    1. **Toggle ON**: "Auto-resolve alerts"
+    2. **Resolution Field**: Map `$.status` to detect resolved state
+    3. When PagerTree marks an alert as resolved, Rootly will automatically close it
+  </Accordion>
+  
+  <Accordion title="Advanced Routing" icon="route">
+    Configure dynamic alert routing (optional):
+    
+    **Notification Type & ID**:
+    - Route to specific teams based on alert content
+    - Use conditions to parse team names or service identifiers
+    - Example: If `$.team` contains "backend" → Route to Backend Team
+  </Accordion>
+</AccordionGroup>
+
+## Validation
+
+### End-to-End Testing
+
+<Steps>
+  <Step title="Create Production-Like Alert">
+    In PagerTree, create an alert with realistic data:
+    - Meaningful title and description
+    - Appropriate urgency level
+    - Assigned team/user
+  </Step>
+  
+  <Step title="Verify in Rootly">
+    Check Rootly's **Alerts** page for:
+    - Alert appears with correct title and description
+    - Urgency mapping is accurate
+    - Link to PagerTree alert works
+    - Alert shows in correct team's queue
+    
+    ![Successful Integration](https://i.ibb.co/LXCqRCBC/Screenshot-2025-10-14-at-2-56-38-PM.png)
+  </Step>
+  
+  <Step title="Test Deduplication">
+    1. Trigger the same alert again in PagerTree
+    2. Verify Rootly adds it as a duplicate event (not a new alert)
+    3. Check the alert timeline shows both occurrences
+  </Step>
+  
+  <Step title="Test Auto-Resolution">
+    1. Resolve the alert in PagerTree
+    2. Verify Rootly automatically marks the alert as resolved
+    3. Confirm resolution timestamp matches
+  </Step>
+</Steps>
+
+## Workflow Automation
+
+### Recommended Workflows
+
+Once alerts are flowing, configure these automated workflows:
+
+<CardGroup cols={2}>
+  <Card title="Auto-Create Incidents" icon="fire">
+    Automatically create incidents for high-urgency PagerTree alerts:
+    - Trigger: Alert urgency = High/Critical
+    - Action: Create incident with alert context
+    - Assign incident commander from alert assignee
+  </Card>
+  
+  <Card title="Slack Notifications" icon="slack">
+    Post alerts to relevant Slack channels:
+    - Parse team from alert payload
+    - Route to team-specific channels
+    - Include alert link and description
+  </Card>
+  
+  <Card title="On-Call Paging" icon="phone">
+    Page on-call engineers for critical alerts:
+    - Check alert urgency and time
+    - Page primary on-call for team
+    - Escalate if not acknowledged
+  </Card>
+  
+  <Card title="Status Page Updates" icon="globe">
+    Update external status pages:
+    - Monitor customer-facing service alerts
+    - Auto-post to status page
+    - Update when resolved
+  </Card>
+</CardGroup>
+
+### Workflow Configuration Example
+
+```yaml
+name: PagerTree Critical Alert Response
+trigger:
+  type: alert_created
+  conditions:
+    - field: source
+      operator: equals
+      value: PagerTree-Production-Alerts
+    - field: urgency
+      operator: in
+      value: [high, critical]
+
+actions:
+  - create_incident:
+      title: "{{ alert.title }}"
+      description: "{{ alert.description }}"
+      severity: "{{ alert.urgency }}"
+      
+  - notify_slack:
+      channel: "#incidents"
+      message: "🚨 New PagerTree alert: {{ alert.title }}"
+```
+
+<Note>
+  This is an example workflow structure. Actual implementation depends on your Rootly workflow configuration.
+</Note>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Alerts Not Appearing" icon="times-circle">
+    **Symptoms**: PagerTree shows webhook sent, but no alert in Rootly
+    
+    **Solutions**:
+    1. Verify webhook URL includes the secret parameter
+    2. Check PagerTree webhook logs for HTTP response codes
+    3. Confirm JSON template syntax is valid
+    4. Review Rootly's alert source audit logs
+  </Accordion>
+  
+  <Accordion title="Template Formatting Issues" icon="shuffle">
+    **Symptoms**: Webhook not received or template errors
+    
+    **Solutions**:
+    1. Check integration logs in PagerTree for error messages
+    2. Look for `status` field in log content for specific errors
+    3. Verify Handlebars syntax is correct (use `{{}}` for variables)
+    4. Use triple-stash `{{{JSONstringify}}}` to bypass URL encoding
+    5. Enable Linked Data if accessing nested properties like `d_user.name`
+  </Accordion>
+  
+  <Accordion title="Duplicate Alerts" icon="clone">
+    **Symptoms**: Same alert creates multiple Rootly alerts
+    
+    **Solutions**:
+    1. Ensure unique identifier (`$.id`) is properly configured
+    2. Verify PagerTree sends consistent ID for same alert
+    3. Enable "Combine duplicate alerts" toggle
+    4. Check deduplication time window settings
+  </Accordion>
+  
+  <Accordion title="Auto-Resolution Not Working" icon="sync">
+    **Symptoms**: Resolved PagerTree alerts remain open in Rootly
+    
+    **Solutions**:
+    1. Confirm `$.status` field is included in payload
+    2. Verify PagerTree sends "resolved" status correctly
+    3. Check auto-resolution is enabled in Rootly
+    4. Review resolution field mapping configuration
+  </Accordion>
+</AccordionGroup>
+
+## Best Practices
+
+<Info>
+  **Alert Hygiene**: Regularly review and clean up test alerts to maintain a clean alert history
+</Info>
+
+### Naming Conventions
+- Use descriptive alert source names: `PagerTree-[Environment]-[Service]`
+- Standardize alert titles for easy filtering
+- Include ticket/incident IDs in descriptions
+
+### Performance Optimization
+- Limit payload size to essential fields
+- Use alert grouping to reduce noise
+- Set appropriate default urgencies
+- Configure rate limiting if needed
+
+### Security Considerations
+- Rotate webhook secrets periodically
+- Use HTTPS endpoints only
+- Limit alert source access to necessary teams
+- Audit webhook activity regularly
+
+## API Reference
+
+### Webhook Payload Structure
+
+<CodeGroup>
+```json Default PagerTree Payload
+{
+  "type": "alert.resolved",
+  "data": {
+    "sid": "acc_H1fh_yx6z",
+    "id": "alt_HJ3eGW-6M",
+    "createdAt": "2025-10-14T00:02:50.419Z",
+    "updatedAt": "2025-10-14T00:03:06.098Z",
+    "meta": {
+      "custom_field": "value"
+    },
+    "tinyId": 1234,
+    "parent_id": "alt_parent123",
+    "thirdparty_id": "ext-123",
+    "destination_ids": ["tem_backend", "usr_john123"],
+    "title": "CPU usage over 95%",
+    "description": "PROD APP 1 CPU load over 95% for 5 minutes.",
+    "type": "alert",
+    "status": "resolved",
+    "urgency": "critical",
+    "d_team_id": "tem_ByxQ3ukgTM",
+    "d_user_id": "usr_r1mnuJg6z",
+    "source_id": "int_datadog123",
+    "created": 1524859374,
+    "acknowledged": 1524859483,
+    "resolved": 1524859487,
+    "tags": ["production", "cpu"],
+    "additional_data": [{
+      "type": "text",
+      "label": "Region",
+      "value": "us-east-1"
+    }]
+  }
+}
+```
+
+```json Custom Template Output
+{
+  "event_type": "alert.resolved",
+  "title": "CPU usage over 95%",
+  "description": "PROD APP 1 CPU load over 95% for 5 minutes.",
+  "pagertree_alert_url": "https://app.pagertree.com/#/alert/alt_HJ3eGW-6M",
+  "urgency": "critical",
+  "id": "alt_HJ3eGW-6M",
+  "tinyId": 1234,
+  "status": "resolved",
+  "team_name": "Backend Team",
+  "user_name": "John Doe"
+}
+```
+</CodeGroup>
+
+### PagerTree Alert Field Reference
+
+| Field | Type | Description | Example |
+|-------|------|-------------|---------|
+| `id` | string | Unique alert identifier | "alt_HJ3eGW-6M" |
+| `tinyId` | number | Numeric alert ID | 1234 |
+| `title` | string | Alert headline | "CPU usage over 95%" |
+| `description` | string | Detailed alert information | "Server CPU critical" |
+| `urgency` | string | Alert severity level | "critical", "high", "medium", "low" |
+| `status` | string | Current alert state | "open", "acknowledged", "resolved" |
+| `type` | string | Alert type | "alert" |
+| `subtype` | string | Alert subtype | "alert" |
+| `createdAt` | ISO 8601 | Creation timestamp | "2025-10-14T00:02:50.419Z" |
+| `updatedAt` | ISO 8601 | Last update timestamp | "2025-10-14T00:03:06.098Z" |
+| `d_team_id` | string | Assigned team ID | "tem_ByxQ3ukgTM" |
+| `d_user_id` | string | Assigned user ID | "usr_r1mnuJg6z" |
+| `source_id` | string | Source integration ID | "int_datadog123" |
+| `tags` | array | Alert tags | ["production", "cpu"] |
+| `meta` | object | Custom metadata ||
+| `additional_data` | array | Structured custom fields | |
+
+## Additional Resources
+
+### Rootly Documentation
+- [Alert Management Overview](https://docs.rootly.com/alerts)
+- [Generic Webhook Configuration](https://docs.rootly.com/integrations/generic-webhook-alert-source)
+- [Alert Routing](https://docs.rootly.com/alert-routing)
+- [Workflow Automation](https://docs.rootly.com/workflows/alert-workflows)
+- [Alert Deduplication](https://docs.rootly.com/alerts#deduplication)
