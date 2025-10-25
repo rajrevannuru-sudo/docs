@@ -5,40 +5,61 @@ description: "Step-by-step migration procedure from Cohere to ZeroEntropy with a
 
 # Migrating from Cohere to ZeroEntropy
 
-This guide provides a detailed procedure for migrating your AI applications from **Cohere** to **ZeroEntropy** and explains why **ZeroEntropy** is advantageous.
+This guide provides a detailed procedure for migrating your AI applications from **Cohere** to **ZeroEntropy** and explains why **ZeroEntropy** is advantageous.
 
-## Why Migrate to ZeroEntropy?
+## Overview
+
+Although **Cohere** and **ZeroEntropy** share conceptual similarities for rerankers and embeddings. **ZeroEntropy** offers faster throughput, improved latency (up to 12% faster in benchmarks), and typed Python SDKs for safer integration.
+
+Here are some of the benefits of switching to **ZeroEntropy**:
 
 - **Faster Response Times:** ZeroEntropy offers up to 12% improved latency in reranking tasks compared to Cohere, making your applications more responsive.
-- **Typed SDK & Strong Typing:** ZeroEntropy’s Python SDK uses typed Pydantic models, ensuring safer and clearer code with better autocomplete and validation.
+- **Typed SDK & Strong Typing:** ZeroEntropy's Python SDK uses typed Pydantic models, ensuring safer and clearer code with better autocomplete and validation.
 - **Optimized Models:** ZeroEntropy models like `zerank-1` and `zenbed-1` are specifically tuned for fast and accurate reranking and embeddings across domains (legal, healthcare, etc.).
 - **Better Scalability:** Async support allows high concurrency and throughput for large-scale applications.
 - **Secure API Key Management:** Environment variable configuration reduces the risk of accidentally exposing keys in code.
 
 ---
 
-## Migration Procedure
+## Prerequisites
 
-## 2. Prerequisites
+<Card title="ZeroEntropy Requirements" icon="shield-check">
+  - Python 3.8 or later
+  - Existing Cohere integration (typically using `cohere` package for rerank/generate APIs)
+  - Access the [ZeroEntropy Dashboard](https://dashboard.zeroentropy.dev/signup) to create your **API Key**
 
-- Python 3.8 or later
-- Existing Cohere integration (typically using `cohere` package for rerank/generate APIs)
-- Access to [ZeroEntropy Dashboard](https://dashboard.zeroentropy.dev) to create your **API Key**
+  **Important:** Store this key securely; you will use it in API requests.
+</Card>
 
-1. Create a ZeroEntropy API Key by visiting the [ZeroEntropy
-   Dashboard](https://dashboard.zeroentropy.dev/), sign up/log in and generate your API key.
+2. Update your current Cohere API integration key in your Python code. For example:
 
-**Important:** Store this key securely; you will use it in API requests.
+```python
+from cohere import Client
+cohere_client = Client('YOUR_COHERE_API_KEY')
+response = cohere_client.rerank(
+    model='rerank-3.5',
+    query='Your search query', 
+    documents=['Doc 1', 'Doc 2', 'Doc 3']
+print(response)
+```
 
-2. Update your current Cohere API integration key in your python code. For example:
+3. Update your new ZeroEntropy API integration key in your Python code. For example:
 
-\+-----------------------------------------------------------------------+ | python                                                                | |                                                                       | | **from** cohere **import** Client                                     | |                                                                       | | cohere_client = Client('YOUR_COHERE_API_KEY')                       | |                                                                       | | response = cohere_client.rerank(                                      | |                                                                       | | model='rerank-3.5',                                                 | |                                                                       | | query='Your search query',                                          | |                                                                       | | documents=['Doc 1', 'Doc 2', 'Doc 3']                         | |                                                                       | | )                                                                     | |                                                                       | | **print**(response)                                                   | +=======================================================================+ +-----------------------------------------------------------------------+
+```python
+from zeroentropy import ZeroEntropy
 
-3. Update your new ZeroEntropy API integration key in your python code. For example:
+zclient = ZeroEntropy(api_key='YOUR_ZEROENTROPY_API_KEY')
 
-\+-----------------------------------------------------------------------+ | python                                                                | |                                                                       | | **from** zeroentropy **import** ZeroEntropy                           | |                                                                       | | zclient = ZeroEntropy(api_key='YOUR_ZEROENTROPY_API_KEY')           | |                                                                       | | response = zclient.models.rerank(                                     | |                                                                       | | model='zerank-1',                                                   | |                                                                       | | query='Your search query',                                          | |                                                                       | | documents=['Doc 1', 'Doc 2', 'Doc 3']                         | |                                                                       | | )                                                                     | |                                                                       | | **print**(response.model_dump_json(indent=4))                         | +=======================================================================+ +-----------------------------------------------------------------------+
+response = zclient.models.rerank(
+    model='zerank-1',
+    query='Your search query',
+    documents=['Doc 1', 'Doc 2', 'Doc 3']
+)
 
-4. Replace all endpoint URLs and model names to use ZeroEntropy's API. Check for version-specific parameters; ZeroEntropy supports zerank-1 and zerank-1-small.
+print(response.model_dump_json(indent=4))
+```
+
+4. Replace all endpoint URLs and model names to use ZeroEntropy's API. Check for version-specific parameters; ZeroEntropy supports zerank-1 and zerank-1-small.
 
 > **Tip:** Review ZeroEntropy's documentation for additional features like latency optimization and payload sizes.
 
@@ -48,5 +69,3 @@ This guide provides a detailed procedure for migrating your AI applications from
  8. Leverage ZeroEntropy's scalability to handle your daily query volume.
  9. Use advanced options such as batch reranking or integration with Hugging Face Model Hub if applicable.
 10. Monitor production usage and adjust configurations for cost and performance optimization.
-
-**Result:** By following this guide, you can smoothly transition from Cohere to ZeroEntropy, unlocking faster query performance and cost efficiencies with minimal code changes.
