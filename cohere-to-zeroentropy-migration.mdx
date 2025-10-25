@@ -23,15 +23,18 @@ Here are some of the benefits of switching to **ZeroEntropy**:
 
 ## Prerequisites
 
-<Card title="ZeroEntropy Requirements" icon="shield-check">
-  - Python 3.8 or later
-  - Existing Cohere integration (typically using `cohere` package for rerank/generate APIs)
-  - Access the [ZeroEntropy Dashboard](https://dashboard.zeroentropy.dev/signup) to create your **API Key**
+## 2. Prerequisites
 
-  **Important:** Store this key securely; you will use it in API requests.
-</Card>
+- Python 3.8 or later
+- Existing Cohere integration (typically using `cohere` package for rerank/generate APIs)
+- Access to [ZeroEntropy Dashboard](https://dashboard.zeroentropy.dev) to create your **API Key**
 
-2. Update your current Cohere API integration key in your Python code. For example:
+1. Create a ZeroEntropy API Key by visiting the [ZeroEntropy
+   Dashboard](https://dashboard.zeroentropy.dev/), sign up/log in and generate your API key.
+
+**Important:** Store this key securely; you will use it in API requests.
+
+2. Update your current Cohere API integration key in your python code. For example:
 
 ```python
 from cohere import Client
@@ -69,3 +72,5 @@ print(response.model_dump_json(indent=4))
  8. Leverage ZeroEntropy's scalability to handle your daily query volume.
  9. Use advanced options such as batch reranking or integration with Hugging Face Model Hub if applicable.
 10. Monitor production usage and adjust configurations for cost and performance optimization.
+
+**Result:** By following this guide, you can smoothly transition from Cohere to ZeroEntropy, unlocking faster query performance and cost efficiencies with minimal code changes.
