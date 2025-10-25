@@ -26,7 +26,6 @@ Here are some of the benefits of switching to **ZeroEntropy**:
 <Card title="ZeroEntropy Requirements" icon="shield-check">
   - Python 3.8 or later
   - Existing Cohere integration (typically using `cohere`package for rerank/generate APIs)
-  - Access the [ZeroEntropy Dashboard](https://dashboard.zeroentropy.dev/signup) to create your **API Key.**
 
   **Important:** Store this key securely; you will use it in API requests.
 </Card>
@@ -61,7 +60,7 @@ response = cohere_client.rerank(
 print(response)
 ```
 
-7. Update your new ZeroEntropy API integration key in your Python code. For example:
+ to this:
 
 ```python
 from zeroentropy import ZeroEntropy
@@ -73,7 +72,6 @@ response = zclient.models.rerank(
     query='Your search query',
     documents=['Doc 1', 'Doc 2', 'Doc 3']
 )
-
 print(response.model_dump_json(indent=4))
 ```
 
