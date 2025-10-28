@@ -33,7 +33,6 @@ Here are some of the benefits of switching to **ZeroEntropy**:
 1. Launch the [Zentropy](https://www.zeroentropy.dev/) portal.
 
    ![Home Page Pn](/images/home-page.png)
-
 2. You can choose to add your API keys in any of the following ways:
    - In the portal, click either the  **Dashboard** or the **Start Now** button at the top-right corner of the screen.
    - In the portal, click the **Get API Key** button at the bottom-left corner of the screen.
@@ -41,26 +40,19 @@ Here are some of the benefits of switching to **ZeroEntropy**:
      **Result:** The **API Keys page** appears:
 
      ![Api Keys Page Pn](/images/api-keys-page.png)
+     
 3. In the API Keys page, click the **\+ Add API Key** button. The **Add API** dialog appears:
 
-  ![Add Api Key Pn](/images/add-api-key.png)
+    ![Add Api Key Pn](/images/add-api-key.png)
 
-3. Enter a suitable name as required in the API key name in the **API Key Name** box.
-4. By default, the **Permission Level** is set to _Read Only_. To change the **Permission Level** to _All Permissions_, click the **Permission Level** pulldown button and change the permission level.
-5. Click the **Create API Key** button. The API key is created and appears in the **Organization API Keys** table list.
-6. Update your current Cohere API integration key in your Python code. For example:
+4. Enter a suitable name as required in the API key name in the **API Key Name** box.
 
-```python
-from cohere import Client
-cohere_client = Client('YOUR_COHERE_API_KEY')
-response = cohere_client.rerank(
-    model='rerank-3.5',
-    query='Your search query', 
-    documents=['Doc 1', 'Doc 2', 'Doc 3']
-print(response)
-```
 
- to this:
+5. By default, the **Permission Level** is set to _Read Only_. To change the **Permission Level** to _All Permissions_, click the **Permission Level** pulldown button and change the permission level.
+
+6. Click the **Create API Key** button. The API key is created and appears in the **Organization API Keys** table list.
+
+7. Update your current Cohere API integration key with the ZeroEntropy API Key. For example:
 
 ```python
 from zeroentropy import ZeroEntropy
