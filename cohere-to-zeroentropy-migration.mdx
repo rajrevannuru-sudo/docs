@@ -1,6 +1,6 @@
 ---
 title: "Migration Guide — Cohere to ZeroEntropy"
-description: "Step-by-step migration procedure from Cohere to ZeroEntropy with advantages of switching."
+description: "Step-by-step migration procedure from Cohere to ZeroEntropy with the advantages of switching."
 ---
 
 # Migrating from Cohere to ZeroEntropy
@@ -30,6 +30,8 @@ Here are some of the benefits of switching to **ZeroEntropy**:
   **Important:** Store this key securely; you will use it in API requests.
 </Card>
 
+## Procedure
+
 1. Launch the [Zentropy](https://www.zeroentropy.dev/) portal.
 
    ![Home Page Pn](/images/home-page.png)
@@ -40,18 +42,12 @@ Here are some of the benefits of switching to **ZeroEntropy**:
      **Result:** The **API Keys page** appears:
 
      ![Api Keys Page Pn](/images/api-keys-page.png)
-     
 3. In the API Keys page, click the **\+ Add API Key** button. The **Add API** dialog appears:
 
-    ![Add Api Key Pn](/images/add-api-key.png)
-
+   ![Add Api Key Pn](/images/add-api-key.png)
 4. Enter a suitable name as required in the API key name in the **API Key Name** box.
-
-
 5. By default, the **Permission Level** is set to _Read Only_. To change the **Permission Level** to _All Permissions_, click the **Permission Level** pulldown button and change the permission level.
-
 6. Click the **Create API Key** button. The API key is created and appears in the **Organization API Keys** table list.
-
 7. Update your current Cohere API integration key with the ZeroEntropy API Key. For example:
 
 ```python
